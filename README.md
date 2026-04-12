@@ -1,102 +1,125 @@
 # Brain Response Classification: Good vs. Bad Design
 
-This project develops a deep learning image classifier to distinguish between brain responses to "good" and "bad" designs. The model, implemented in PyTorch using a Convolutional Neural Network (CNN), processes brain topomap images to perform this binary classification.
+This project trains a deep learning image classifier to distinguish between brain responses to **good** and **bad** designs. The model is a Convolutional Neural Network (CNN) implemented in PyTorch that processes brain topomap images and outputs a binary prediction.
+
+---
 
 ## Dataset
 
-The dataset is expected to be structured as follows, with a root folder named `topomaps` (or as specified in `train.py`):
+The dataset is expected in a folder named `topomaps` with the following structure:
 
-/topomaps
-|_ good/
-|_ Good_6s_1.png
-|_ Good_6s_2.png
-|_ ...
-|_ bad/
-|_ Bad_6s_1.png
-|_ Bad_6s_2.png
-|_ ...
+```
+topomaps/
+  good/
+    Good_6s_1.png
+    Good_6s_2.png
+    ...
+  bad/
+    Bad_6s_1.png
+    Bad_6s_2.png
+    ...
+```
 
-Each `.png` file is an image representing a brain topomap.
+Each `.png` file is a brain topomap image recorded after 6 seconds of exposure to a design stimulus.
+
+---
 
 ## Objective
 
-The primary goal is to train an image classifier that can accurately distinguish between two categories of brain responses:
-* **bad** (sparse label encoding: `0`)
-* **good** (sparse label encoding: `1`)
+Train a binary image classifier with the following label encoding:
+
+| Class | Label |
+|-------|-------|
+| bad   | `0`   |
+| good  | `1`   |
+
+When given an image as input, the model outputs either `0` or `1`.
+
+---
 
 ## Methodology
 
-* **Language:** Python 3
-* **Core Library:** PyTorch, Torchvision
-* **Model Type:** A Convolutional Neural Network (CNN). The architecture includes multiple convolutional layers with ReLU activations, Max Pooling layers, an Adaptive Average Pooling layer, and fully connected layers with Dropout for regularization, outputting a single value via a Sigmoid activation for binary classification.
-* **Preprocessing:**
-    * Images are loaded using Pillow and converted to RGB.
-    * Images are resized to 128x128 pixels.
-    * Images are converted to PyTorch tensors.
-    * Tensors are normalized using standard ImageNet mean and standard deviation values.
+| Item | Detail |
+|------|--------|
+| Language | Python 3 |
+| Framework | PyTorch |
+| Task | Binary image classification |
+| Loss | Binary Cross-Entropy (`BCELoss`) |
+| Evaluation metric | Accuracy |
+| Input size | 128 × 128 RGB |
+| Normalisation | ImageNet mean/std: `[0.485, 0.456, 0.406]` / `[0.229, 0.224, 0.225]` |
 
-## Files in the Repository
+### Model Architecture
 
-* `train.py`: Script for training the brain response classification model. It handles data loading, preprocessing, model definition, training loop, validation, and saving the best model checkpoint.
-* `eval.py`: Script for evaluating a trained model (`.pth` file) on a new set of images. It loads the model, preprocesses the input images, and predicts labels.
-* `requirements.txt`: File listing the necessary Python packages for this project.
-* `README.md`: This file.
+The CNN consists of four convolutional blocks with progressively increasing filter depths (16 → 32 → 64 → 128 → 256 → 512), each followed by ReLU activations and MaxPooling. An Adaptive Average Pooling layer reduces the spatial dimensions to 4×4, and two fully connected layers (1024 → 1024 → 1) with 0.5 Dropout produce the final output. A Sigmoid activation converts this to a probability; values ≥ 0.5 predict class `1` (good).
 
-## Setup & Installation
+### Training Details
 
-1.  **Create a Virtual Environment (Recommended):**
+- **Optimiser:** Adam (`lr=0.001`)
+- **LR Scheduler:** ReduceLROnPlateau (factor 0.5, patience 5)
+- **Epochs:** 60
+- **Batch size:** 8
+- **Data split:** 70% train / 15% validation / 15% test (stratified)
+- **Training augmentations:** RandomHorizontalFlip, RandomRotation (±10°), ColorJitter (brightness/contrast ±20%)
+- **Checkpoint:** Best model (lowest validation loss) saved as `model.pth`
+
+---
+
+## Files
+
+| File | Description |
+|------|-------------|
+| `train.py` | Data loading, model definition, training loop, final test evaluation |
+| `eval.py` | Load a trained `.pth` checkpoint and run inference on a directory of images |
+| `requirements.txt` | Third-party dependencies beyond the default grading environment |
+| `README.md` | This file |
+
+---
+
+## Setup
+
+1. **Create and activate a virtual environment:**
+
     ```bash
     python -m venv brain_env
-    source brain_env/bin/activate  # On Windows: brain_env\Scripts\activate
+    source brain_env/bin/activate   # Windows: brain_env\Scripts\activate
     ```
 
-2.  **Install Dependencies:**
-    Navigate to the project directory and install the required packages:
+2. **Install dependencies:**
+
     ```bash
     pip install -r requirements.txt
     ```
-    This will install libraries such as PyTorch, NumPy, Pillow, Scikit-learn, and Torchvision as specified in `requirements.txt`.
+
+    > **Note:** The grading environment includes `Pytorch 2.4.0`, `Numpy 2.2.0`, `Pillow 11.0.0`, and `Scikit-learn 1.6` by default. The only additional dependency this project requires is `torchvision`, which is listed in `requirements.txt`.
+
+---
 
 ## Usage
 
-### 1. Training the Model
-Ensure your dataset is in a directory named `topomaps` in the same directory as `train.py`, or modify the `data_dir` variable within `train.py` if your data is elsewhere.
+### Training
 
-To train the model, run:
+Place the `topomaps/` dataset folder in the same directory as `train.py`, then run:
+
 ```bash
 python train.py
+```
 
-This script will:
+The script prints train loss, validation loss, and validation accuracy after each epoch, and saves the best checkpoint as `model.pth`. After training, it automatically evaluates the best checkpoint on the held-out test set.
 
-- Load and preprocess the data.
-- Split the data into training and validation sets.
-- Train the CNN model.
-- Print training and validation loss/accuracy for each epoch.
-- Save the model checkpoint with the best validation loss as model.pth in the current directory.
+### Evaluation
 
+The `load_and_predict(directory, model_file)` function in `eval.py` is the grader-facing API. It accepts the path to an image directory (with the same `good/` / `bad/` structure) and a `.pth` model file, and returns a dictionary mapping absolute image paths to predicted integer labels:
 
-### 2. Evaluating a Trained Model
-The eval.py script is designed to load the trained model.pth and predict labels for images in a specified directory.
+```python
+from eval import load_and_predict
 
-To run the evaluation using the default test directory (topomaps) and model file (model.pth) as defined in its if __name__ == "__main__": block:
+results = load_and_predict("topomaps", "model.pth")
+# {'/abs/path/good/Good_6s_1.png': 1, '/abs/path/bad/Bad_6s_1.png': 0, ...}
+```
 
+To run the self-test directly:
+
+```bash
 python eval.py
-
-The load_and_predict(directory, model_file) function within eval.py can also be called by other scripts or systems. It takes the path to the image directory (structured like the training data) and the path to the .pth model file.
-
-The function returns a dictionary where keys are absolute file paths of the images and values are the predicted integer labels (0 for "bad", 1 for "good").
-
-## Hyperparameters
-Key hyperparameters and settings are defined at the beginning of train.py or within its main() function, including:
-
-data_dir: Path to the dataset directory.
-batch_size: Number of samples per training/validation batch.
-num_epochs: Maximum number of training epochs.
-lr: Initial learning rate for the Adam optimizer.
-Image Resize: Images are resized to (128, 128).
-Normalization Stats: Standard ImageNet means [0.485, 0.456, 0.406] and stds [0.229, 0.224, 0.225].
-Train/Validation Split: test_size=0.3 for initial validation split, then test_size=0.5 of that for test (effectively 70% train, 15% val, 15% test - though the test split is not directly used in the training loop apart from being set aside).
-
-
-## Results
-The model's performance (accuracy, precision, recall, F1-score) will depend on the dataset characteristics, the training process, and hyperparameter tuning. The train.py script includes a validation loop to monitor performance and save the best model based on validation loss. The eval.py script includes an example of how to calculate accuracy on a test set if ground truth labels can be inferred from filenames.
+```
