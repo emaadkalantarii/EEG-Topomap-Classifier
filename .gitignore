@@ -1,9 +1,6 @@
 # Virtual environment
 venv-topo/
 
-# Dataset
-topomaps/
-
 # Trained model checkpoint
 model.pth
 
