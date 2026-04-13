@@ -94,7 +94,7 @@ topomaps/
 
 **Class imbalance:** The dataset is naturally imbalanced (678 bad vs. 500 good). All train/val/test splits are **stratified** to preserve this ratio across every partition, preventing any split from being accidentally skewed toward one class.
 
-> The dataset is **not included** in this repository. Place the `topomaps/` folder in the project root before running training or inference.
+> Place the `topomaps/` folder in the project root before running training or inference.
 
 ---
 
