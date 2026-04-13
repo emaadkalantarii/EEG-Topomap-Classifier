@@ -138,7 +138,7 @@ Full dataset (1178 images)
 ## Project Structure
 
 ```
-eeg-topomap-classifier/
+EEG-Topomap-Classifier/
 ├── train.py          # Training script: data loading, model definition, training loop, test eval
 ├── eval.py           # Inference script: load checkpoint, predict labels for new images
 ├── requirements.txt  # Python dependencies
@@ -154,8 +154,8 @@ eeg-topomap-classifier/
 **1. Clone the repository:**
 
 ```bash
-git clone https://github.com/emaadkalantarii/Brain-response-classifier.git
-cd Brain-response-classifier
+git clone https://github.com/emaadkalantarii/EEG-Topomap-Classifier.git
+cd EEG-Topomap-Classifier
 ```
 
 **2. Create the environment and install dependencies:**
@@ -186,11 +186,12 @@ pip install scikit-learn pillow numpy
 python -c "import torch; print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0))"
 ```
 
-Expected output:
+If a GPU is available, the output will be similar to:
 ```
 True
-NVIDIA GeForce RTX 4060 Laptop GPU
+NVIDIA GeForce <your GPU name>
 ```
+If no GPU is detected, `torch.cuda.is_available()` returns `False` and the scripts will automatically fall back to CPU.
 
 ---
 
@@ -204,14 +205,22 @@ Place the `topomaps/` dataset in the project root, then run:
 python train.py
 ```
 
-The script automatically detects and uses your GPU if available. Expected startup output:
+The script automatically detects and uses your GPU if available. Example startup output on a CUDA-enabled machine:
 
 ```
-GPU detected: NVIDIA GeForce RTX 4060 Laptop GPU
-CUDA version: 12.1
-VRAM available: 8.6 GB
+GPU detected: <your GPU name>
+CUDA version: <your CUDA version>
+VRAM available: <available VRAM> GB
 
 Device: cuda
+```
+
+On a CPU-only machine:
+
+```
+No GPU found. Using CPU.
+
+Device: cpu
 ```
 
 Training output per epoch:
@@ -252,7 +261,7 @@ python eval.py
 ```
 
 ```
-GPU detected: NVIDIA GeForce RTX 4060 Laptop GPU
+GPU detected: <your GPU name>
 Model loaded successfully.
 Found 1178 images.
 Total predictions : 1178
