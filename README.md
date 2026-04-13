@@ -141,7 +141,7 @@ EEG-Topomap-Classifier/
 ├── train.py          # Training script: data loading, model definition, training loop, test eval
 ├── eval.py           # Inference script: load checkpoint, predict labels for new images
 ├── requirements.txt  # Python dependencies
-├── topomaps/
+├── topomaps/         # Dataset
 │   ├── good/         # Images of good brain responses (500 images)
 │   └── bad/          # Images of bad brain responses (678 images)
 └── README.md
