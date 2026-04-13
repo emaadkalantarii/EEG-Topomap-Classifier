@@ -23,12 +23,16 @@ Input: EEG topomap image  →  CNN  →  Output: 0 (bad) or 1 (good)
 
 | Metric | Value |
 |--------|-------|
-| Test Accuracy | `—` *(fill in after running training)* |
-| Val Loss (best) | `—` |
-| Epochs trained | 60 |
-| Data split | 70 / 15 / 15 % |
+| **Test Accuracy** | **90.96%** |
+| Best Val Accuracy | 97.18% |
+| Best Val Loss | 0.0808 |
+| Best checkpoint saved at | Epoch 45 / 60 |
+| Data split | 70 / 15 / 15 % (stratified) |
+| Training images | 824 |
+| Validation images | 177 |
+| Test images | 177 |
 
-> To reproduce: follow the [Setup](#setup) and [Training](#usage) steps below. The best checkpoint is saved automatically as `model.pth`.
+> Test accuracy is measured on the **held-out test set** (177 images the model never saw during training or validation), making it the honest measure of generalisation.
 
 ---
 
@@ -71,17 +75,17 @@ topomaps/
 ├── good/
 │   ├── Good_6s_1.png
 │   ├── Good_6s_2.png
-│   └── ...
+│   └── ...           (500 images)
 └── bad/
     ├── Bad_6s_1.png
     ├── Bad_6s_2.png
-    └── ...
+    └── ...           (678 images)
 ```
 
-| Class | Label | Description |
-|-------|-------|-------------|
-| `bad` | `0` | Brain response to a poorly received design |
-| `good` | `1` | Brain response to a well received design |
+| Class | Label | Count | Description |
+|-------|-------|-------|-------------|
+| `bad` | `0` | 678 | Brain response to a poorly received design |
+| `good` | `1` | 500 | Brain response to a well received design |
 
 > The dataset is not included in this repository. Place the `topomaps/` folder in the project root before running training.
 
@@ -117,10 +121,10 @@ Validation and test sets use only resize and normalise — no augmentation.
 Splits are **stratified** to preserve class balance across all three partitions.
 
 ```
-Full dataset
-├── 70%  →  Training set
-├── 15%  →  Validation set   (used for checkpoint selection)
-└── 15%  →  Test set         (held out; evaluated once after training)
+Full dataset (1178 images)
+├── 70%  →  Training set      (824 images)
+├── 15%  →  Validation set    (177 images — used for checkpoint selection)
+└── 15%  →  Test set          (177 images — held out; evaluated once after training)
 ```
 
 ---
@@ -200,7 +204,7 @@ The script automatically detects and uses your GPU if available. Expected startu
 ```
 GPU detected: NVIDIA GeForce RTX 4060 Laptop GPU
 CUDA version: 12.1
-VRAM available: 8.2 GB
+VRAM available: 8.6 GB
 
 Device: cuda
 ```
@@ -208,10 +212,14 @@ Device: cuda
 Training output per epoch:
 
 ```
-Epoch   1/60 | Train Loss: 0.6923 | Val Loss: 0.6891 | Val Acc: 0.5333 | LR: 0.001000
+Epoch   1/60 | Train Loss: 0.5099 | Val Loss: 0.3490 | Val Acc: 0.8701 | LR: 0.001000
   → Saved new best model.
-Epoch   2/60 | Train Loss: 0.6801 | Val Loss: 0.6754 | Val Acc: 0.6000 | LR: 0.001000
 ...
+Epoch  45/60 | Train Loss: 0.1544 | Val Loss: 0.0808 | Val Acc: 0.9718 | LR: 0.000125
+  → Saved new best model.
+...
+Evaluating best model on held-out test set...
+Test Accuracy: 0.9096
 ```
 
 The best checkpoint (lowest validation loss) is saved as `model.pth`. After training completes, the script automatically loads the best checkpoint and reports accuracy on the held-out test set.
@@ -243,7 +251,7 @@ GPU detected: NVIDIA GeForce RTX 4060 Laptop GPU
 Model loaded successfully.
 Found 1178 images.
 Total predictions : 1178
-Accuracy          : 0.8250
+Accuracy          : 0.9499
 ```
 
 ---
