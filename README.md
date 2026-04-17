@@ -20,7 +20,6 @@ This project applies computer vision to that problem: instead of a human expert 
 Input: EEG topomap image  →  CNN  →  Output: 0 (bad) or 1 (good)
 ```
 
-
 ---
 
 ## Results
@@ -72,7 +71,7 @@ Output: probability ∈ [0, 1]  →  threshold 0.5  →  class label {0, 1}
 
 ## Dataset
 
-The dataset consists of EEG topomap images recorded after 6 seconds of exposure to visual design stimuli, labelled by the class of neurological response.
+The dataset consists of EEG topomap images recorded after 6 seconds of exposure to visual design stimuli, labelled by the class of neurological response. It is included directly in this repository as no public download URL exists.
 
 ```
 topomaps/
@@ -92,7 +91,6 @@ topomaps/
 | `good` | `1` | 500 | Brain response to a well received design |
 
 **Class imbalance:** The dataset is naturally imbalanced (678 bad vs. 500 good). All train/val/test splits are **stratified** to preserve this ratio across every partition, preventing any split from being accidentally skewed toward one class.
-
 
 ---
 
@@ -133,18 +131,21 @@ Full dataset (1178 images)
 
 ---
 
-## Project Structure
+## Repository Structure
 
 ```
 EEG-Topomap-Classifier/
-├── train.py          # Training script: data loading, model definition, training loop, test eval
-├── eval.py           # Inference script: load checkpoint, predict labels for new images
-├── requirements.txt  # Python dependencies
-├── topomaps/         # Dataset
-│   ├── good/         # Images of good brain responses (500 images)
-│   └── bad/          # Images of bad brain responses (678 images)
+├── topomaps/             # Full dataset (included — no public download URL exists)
+│   ├── good/             # 500 images of positive brain responses
+│   └── bad/              # 678 images of negative brain responses
+├── train.py              # Training script: data loading, model definition, training loop, test eval
+├── eval.py               # Inference script: load checkpoint, predict labels for new images
+├── requirements.txt      # Python dependencies
+├── .gitignore            # Excludes model checkpoint, venvs, and cache
 └── README.md
 ```
+
+> `model.pth` is not tracked — it is generated locally by running `train.py`.
 
 ---
 
@@ -159,6 +160,8 @@ git clone https://github.com/emaadkalantarii/EEG-Topomap-Classifier.git
 cd EEG-Topomap-Classifier
 ```
 
+The `topomaps/` dataset is included in the repository and will be available immediately after cloning.
+
 **2. Create the environment and install dependencies:**
 
 **Option A — conda (recommended, especially on Windows):**
@@ -169,7 +172,7 @@ Conda resolves all native DLL dependencies automatically, avoiding common Window
 conda create -n brain-classifier python=3.11 -y
 conda activate brain-classifier
 conda install pytorch==2.4.0 torchvision==0.19.0 pytorch-cuda=12.1 -c pytorch -c nvidia -y
-pip install scikit-learn pillow numpy
+pip install scikit-learn==1.6.0 pillow==11.0.0 numpy==2.2.0
 ```
 
 **Option B — pip + venv (Linux / macOS):**
@@ -178,7 +181,7 @@ pip install scikit-learn pillow numpy
 python -m venv venv-topo
 source venv-topo/bin/activate
 pip install torch==2.4.0 torchvision==0.19.0 --index-url https://download.pytorch.org/whl/cu121
-pip install scikit-learn pillow numpy
+pip install scikit-learn==1.6.0 pillow==11.0.0 numpy==2.2.0
 ```
 
 **3. Verify GPU is detected (optional but recommended):**
@@ -187,20 +190,18 @@ pip install scikit-learn pillow numpy
 python -c "import torch; print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0))"
 ```
 
-If a GPU is available, the output will be similar to:
+If a GPU is available, the output will be:
 ```
 True
 NVIDIA GeForce <your GPU name>
 ```
-If no GPU is detected, `torch.cuda.is_available()` returns `False` and the scripts will automatically fall back to CPU.
+If no GPU is detected, the scripts automatically fall back to CPU.
 
 ---
 
 ## Usage
 
 ### Training
-
-Place the `topomaps/` dataset in the project root, then run:
 
 ```bash
 python train.py
@@ -209,19 +210,11 @@ python train.py
 The script automatically detects and uses your GPU if available. Example startup output on a CUDA-enabled machine:
 
 ```
-GPU detected: <your GPU name>
-CUDA version: <your CUDA version>
-VRAM available: <available VRAM> GB
+GPU detected: NVIDIA GeForce RTX 4060 Laptop GPU
+CUDA version: 12.1
+VRAM available: 8.6 GB
 
 Device: cuda
-```
-
-On a CPU-only machine:
-
-```
-No GPU found. Using CPU.
-
-Device: cpu
 ```
 
 Training output per epoch:
@@ -262,7 +255,7 @@ python eval.py
 ```
 
 ```
-GPU detected: <your GPU name>
+GPU detected: NVIDIA GeForce RTX 4060 Laptop GPU
 Model loaded successfully.
 Found 1178 images.
 Total predictions : 1178
@@ -278,10 +271,10 @@ Accuracy          : 0.9499
 | Library | Version | Purpose |
 |---------|---------|---------|
 | PyTorch | 2.4.0 | Model definition and training |
-| torchvision | ≥ 0.19.0 | Image transforms |
+| torchvision | 0.19.0 | Image transforms |
 | Pillow | 11.0.0 | Image loading |
 | NumPy | 2.2.0 | Numerical utilities |
-| scikit-learn | 1.6 | Stratified train/val/test split |
+| scikit-learn | 1.6.0 | Stratified train/val/test split |
 
 ---
 
